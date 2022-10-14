@@ -44,21 +44,23 @@ class S3Storage implements Storage
 
     public function list(string $path, array $options = []): array
     {
+        $filepath = $this->config['directory'] . '/' . $path;
         $contents = $this->connection()->listObjects([
-            'Bucket' => $this->config['bucket'],
-            "Prefix" => $this->config['directory'] . '/' . $path
+            'Bucket' => $this->config['bucket']
         ]);
         foreach ($contents['Contents'] as $content) {
-            if (!empty($options['filter'])) {
-                if (strpos($content['Key'], $options['filter']) !== false) {
+            if (strpos($content['Key'], $filepath) !== false) {
+                if (!empty($options['filter'])) {
+                    if (strpos($content['Key'], $options['filter']) !== false) {
+                        $image_list[] = $content['Key'];
+                    }
+                } else {
                     $image_list[] = $content['Key'];
                 }
-            } else {
-                $image_list[] = $content['Key'];
             }
         }
 
-        return $image_list;
+        return $image_list ?? [];
     }
 
     public function mkdir(string $path, array $options = []): void
